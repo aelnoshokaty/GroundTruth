@@ -91,6 +91,7 @@ def getRandomPetitions(l):
         if not petitionID[i] in petitionsSet:
             petitionsSet.add(i)
             count += 1
+
     count=0
     petitionIDRand=[]
     petitionURLRand = []
