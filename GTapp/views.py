@@ -63,7 +63,7 @@ CALLBACK_URL = 'http://localhost:8000/display_petitions'
 
 
 
-# test git
+# test git push
 
 def getRandomPetitions(l):
     db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
