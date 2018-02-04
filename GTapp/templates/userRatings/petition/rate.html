@@ -1,0 +1,196 @@
+{% extends "userRatings/base.html" %}
+
+{% block content %}
+    <style>
+    tr td {
+        padding-top: 1em;
+    }
+
+    input[type="radio"] {
+        margin-left:3.5em;
+    }
+
+    input[type="submit"] {
+        margin-top: 2em;
+    }
+    </style>
+    <h2>Rating Petitions</h2>
+    <h3> {{msg}}</h3>
+    <body>
+        <form method="post" name="formSurvey">
+            {% csrf_token %}
+            <table style="width:100%" border="1">
+                <tr><th>Petition title</th> <th>Strongly relevant</th> <th>Relevant</th> <th>Nuetral</th> <th>Irrelevant</th> <th>Strongly irrelevant</th></tr>
+                {% for item in petitions %}
+                    <tr>
+                        <td style="width:50%">
+                            <a href="{{ item.1}}">
+                                <left>{{ item.2 }}</left>
+                            </a>
+                        </td>
+                        {% if incomplete %}
+                            {% if item.3 == "0" %}
+                                <td>
+                                    <right><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="0" checked="checked"></right>
+
+                                </td>
+                                <td>
+                                    <center><input type="radio" style="margin-left:3em" name="{{ item.0 }}" value="1"></center>
+
+                                </td>
+                                <td>
+                                    <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="2"></center>
+
+                                </td>
+                                <td>
+                                    <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="3"></center>
+
+                                </td>
+                                <td>
+                                    <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="4"></center>
+
+                                </td>
+                            {% else %}
+                                {% if item.3 == "1" %}
+                                    <td>
+                                        <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="0"></center>
+
+                                    </td>
+                                    <td>
+                                        <center><input type="radio" style="margin-left:3em" name="{{ item.0 }}" value="1" checked="checked"></center>
+
+                                    </td>
+                                    <td>
+                                        <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="2"></center>
+
+                                    </td>
+                                    <td>
+                                        <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="3"></center>
+
+                                    </td>
+                                    <td>
+                                        <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="4"></center>
+
+                                    </td>
+                                {% else %}
+                                    {% if item.3 == "2" %}
+                                        <td>
+                                            <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="0"></center>
+
+                                        </td>
+                                        <td>
+                                            <center><input type="radio" style="margin-left:3em" name="{{ item.0 }}" value="1"></center>
+
+                                        </td>
+                                        <td>
+                                            <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="2" checked="checked"></center>
+
+                                        </td>
+                                        <td>
+                                            <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="3"></center>
+
+                                        </td>
+                                        <td>
+                                            <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="4"></center>
+
+                                        </td>
+                                    {% else %}
+                                        {% if item.3 == "3" %}
+                                            <td>
+                                                <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="0"></center>
+
+                                            </td>
+                                            <td>
+                                                <center><input type="radio" style="margin-left:3em" name="{{ item.0 }}" value="1"></center>
+
+                                            </td>
+                                            <td>
+                                                <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="2"></center>
+
+                                            </td>
+                                            <td>
+                                                <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="3" checked="checked"></center>
+
+                                            </td>
+                                            <td>
+                                                <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="4"></center>
+
+                                            </td>
+                                        {% else %}
+                                            {% if item.3 == "4" %}
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="0"></center>
+
+                                                </td>
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:3em" name="{{ item.0 }}" value="1"></center>
+
+                                                </td>
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="2"></center>
+
+                                                </td>
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="3"></center>
+
+                                                </td>
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="4" checked="checked"></center>
+
+                                                </td>
+                                            {% else %}
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="0"></center>
+
+                                                </td>
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:3em" name="{{ item.0 }}" value="1"></center>
+
+                                                </td>
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="2"></center>
+
+                                                </td>
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="3"></center>
+
+                                                </td>
+                                                <td>
+                                                    <center><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="4"></center>
+
+                                                </td>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <td>
+                                <left><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="0"></left>
+
+                            </td>
+                            <td>
+                                <left><input type="radio" style="margin-left:3em" name="{{ item.0 }}" value="1"></left>
+
+                            </td>
+                            <td>
+                                <left><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="2"></left>
+
+                            </td>
+                            <td>
+                                <left><input type="radio" style="margin-left:2.2em" name="{{ item.0 }}" value="3"></left>
+
+                            </td>
+                            <td>
+                                <left><input type="radio" style="margin-left:4em" name="{{ item.0 }}" value="4"></left>
+
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </table>
+            <center><input type="submit" name="Send" value="Send" /></center>
+        </form>
+
+    </body>
+{% endblock %}
