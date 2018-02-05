@@ -28,6 +28,7 @@ urlpatterns = [
 
     url(r'^$', views.index, name='index'),
     url(r'^display_petitions/$', views.display_petitions, name='display_petitions'),
+    url(r'^notApplicable/$', views.notApplicable, name='notApplicable'),
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^login/?$', views.twitter_login, name='twitter_login'),
