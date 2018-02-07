@@ -38,8 +38,8 @@ import json
 #import datetime
 from time import gmtime, strftime
 
-
-
+host = '127.0.0.1'
+dbFile = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
 twitter_handle='change'
 
 # It's probably a good idea to put your consumer's OAuth token and
@@ -63,7 +63,7 @@ CALLBACK_URL = 'http://localhost:8000/display_petitions'
 
 
 def getCodes():
-    db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -80,7 +80,7 @@ def getCodes():
     return codesSet
 
 def getRandomPetitions(l):
-    db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -137,7 +137,7 @@ def insert_user(usrObj):
     :param project:
     :return: project id
     """
-    db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -165,7 +165,7 @@ def insert_tweets(post):
     :param project:
     :return: project id
     """
-    db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -241,7 +241,7 @@ def insert_ratings(uid,petitionsIDs,petitionsValues,id):
         ls.append(uid)
         if petitionsIDs[i] not in ['0','-1', '-2']:
             ratings.append(tuple(ls))
-    db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -731,7 +731,7 @@ def get_all_tweets(uid):
 
 
 def checkifUserExist(uid):
-    db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -752,7 +752,7 @@ def checkifUserExist(uid):
         return False
 
 def checkifTweetsExist(uid):
-    db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -772,7 +772,7 @@ def checkifTweetsExist(uid):
         return False
 
 def checkifRatingsExist(uid):
-    db_file = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -888,6 +888,9 @@ def index(request):
 def notApplicable(request):
     return render(request, 'userRatings/petition/notApplicable.html')
 
+def payAttention(request):
+    return render(request, 'userRatings/user/concentrate.html')
+
 
 def display_petitions(request):
     # calls the PollForm we created and displays it on the page
@@ -944,20 +947,19 @@ def display_petitions(request):
                 '''
                 counter =0
                 for i in petitionsValues:
-                    if counter!=5 and counter!=10 and counter!=15 and i==5:
+                    link='http://'+host+':8000/'
+                    if counter!=5 and counter!=10 and counter!=15 and i=="5":
                         #Route to attention page
+                        print 'first'
                         print i
                         print counter
-                        return render_to_response('userRatings/user/concentrate.html',
-                                              {'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay attention while answering and retake the questionnaire'},
-                                           context_instance=RequestContext(request), )
-                    elif counter==5 and counter==10 and counter==15 and i!=5:
-                        print i
-                        print counter
-                        return render_to_response('userRatings/user/concentrate.html',
-                                                  {'msg': 'Sorry, ' + usrObj[
-                                                      "screen_name"] + ', you need to pay attention while answering and retake the questionnaire'},
-                                                  context_instance=RequestContext(request), )
+                        return render_to_response('userRatings/user/concentrate.html',{'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay attention while answering and retake the questionnaire','link':link},context_instance=RequestContext(request), )
+                    if counter==5 or counter==10 or counter==15:
+                        if  i!="5":
+                            print 'second'
+                            print i
+                            print counter
+                            return render_to_response('userRatings/user/concentrate.html',{'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay attention while answering and retake the questionnaire','link':link},context_instance=RequestContext(request), )
                     counter+=1
 
                 count = 0
@@ -987,13 +989,13 @@ def display_petitions(request):
 
         # insert attention questions after index 5,10,15
         petitionsIDs.insert(5, '0')
-        petitionsURLs.insert(5, 'http://127.0.0.1:8000/notApplicable')
+        petitionsURLs.insert(5, 'http://'+host+':8000/notApplicable')
         petitionsTitles.insert(5, 'Donald Trump is the first president for the United States of America.')
         petitionsIDs.insert(10, '-1')
-        petitionsURLs.insert(10, 'http://127.0.0.1:8000/notApplicable')
+        petitionsURLs.insert(10, 'http://'+host+':8000/notApplicable')
         petitionsTitles.insert(10, 'Egypt is a country located in North America and always snows.')
         petitionsIDs.insert(15, '-2')
-        petitionsURLs.insert(15, 'http://127.0.0.1:8000/notApplicable')
+        petitionsURLs.insert(15, 'http://'+host+':8000/notApplicable')
         petitionsTitles.insert(15, 'The polar bear tends to live in tropical places, and do not live near the freezing poles.')
         request.session['petitionsIDs'] = petitionsIDs
         request.session['petitionsURLs'] = petitionsURLs

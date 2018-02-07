@@ -38,8 +38,8 @@ import json
 #import datetime
 from time import gmtime, strftime
 
-
-
+host = '18.220.133.108'
+dbFile = '/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3'
 twitter_handle='change'
 
 # It's probably a good idea to put your consumer's OAuth token and
@@ -62,11 +62,25 @@ AUTHORIZATION_URL = 'https://api.twitter.com/oauth/authorize'
 CALLBACK_URL = 'http://localhost:8000/display_petitions'
 
 
-
-
+def getCodes():
+    db_file = dbFile
+    try:
+        conn = sqlite3.connect(db_file)
+    except Exception as e:
+        print(e)
+    cursor = conn.cursor()
+    data = cursor.execute('''SELECT DISTINCT code FROM GTapp_ratings''')
+    data1 = data.fetchall()
+    total = 0
+    codesSet = {}
+    codesSet = set()
+    for it in data1:
+        codesSet.append(it[1])
+        total+=1
+    return codesSet
 
 def getRandomPetitions(l):
-    db_file = "/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -91,7 +105,6 @@ def getRandomPetitions(l):
         if not petitionID[i] in petitionsSet:
             petitionsSet.add(i)
             count += 1
-
     count=0
     petitionIDRand=[]
     petitionURLRand = []
@@ -124,7 +137,7 @@ def insert_user(usrObj):
     :param project:
     :return: project id
     """
-    db_file = "/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -152,7 +165,7 @@ def insert_tweets(post):
     :param project:
     :return: project id
     """
-    db_file = "/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -211,7 +224,7 @@ def pause():
     print('')
     time.sleep(1)
 
-def insert_ratings(uid,petitionsIDs,petitionsValues):
+def insert_ratings(uid,petitionsIDs,petitionsValues,id):
     """
     Create a new project into the projects table
     :param conn:
@@ -224,15 +237,17 @@ def insert_ratings(uid,petitionsIDs,petitionsValues):
         ls = []
         ls.append(petitionsValues[i])
         ls.append(petitionsIDs[i])
+        ls.append(id)
         ls.append(uid)
-        ratings.append(tuple(ls))
-    db_file = "/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3"
+        if petitionsIDs[i] not in ['0','-1', '-2']:
+            ratings.append(tuple(ls))
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
         print(e)
     cur = conn.cursor()
-    cur.executemany('insert into GTapp_ratings(rating,petition_id,user_id) values (?,?,?)', ratings)
+    cur.executemany('insert into GTapp_ratings(rating,petition_id,code,user_id) values (?,?,?,?)', ratings)
     conn.commit()
     #cur.execute(sql, petition)
     #return cur.lastrowid
@@ -716,7 +731,7 @@ def get_all_tweets(uid):
 
 
 def checkifUserExist(uid):
-    db_file = "/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -737,7 +752,7 @@ def checkifUserExist(uid):
         return False
 
 def checkifTweetsExist(uid):
-    db_file = "/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -757,7 +772,7 @@ def checkifTweetsExist(uid):
         return False
 
 def checkifRatingsExist(uid):
-    db_file = "/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3"
+    db_file = dbFile
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
@@ -870,12 +885,16 @@ def index(request):
     else:
         return render(request, 'userRatings/user/info.html')
 
+def notApplicable(request):
+    return render(request, 'userRatings/petition/notApplicable.html')
 
+def payAttention(request):
+    return render(request, 'userRatings/user/concentrate.html')
 
 
 def display_petitions(request):
     # calls the PollForm we created and displays it on the page
-
+    err=''
     petitionsIDs = []
     petitionsTitles = []
     petitionsURLs = []
@@ -887,7 +906,7 @@ def display_petitions(request):
         if checkifRatingsExist(usrObj["id_str"]):
             return render(request, 'userRatings/user/illegable.html', {'msg': 'Thank you for your interest ' + usrObj[
                 "screen_name"] + ', you have already submitted your questionnaire, no need to resubmit'})
-        msg="Hi "+usrObj["screen_name"]+", the online petitioning community is looking for your help to build a better recommendation system"
+        msg="Hi "+usrObj["screen_name"]+", scholars is looking for your help"
     else:
         msg=''
         print 'user is not retrieved at display_petitions'
@@ -913,39 +932,84 @@ def display_petitions(request):
                     break
             if incomplete:
                 msg = 'Please finish rating all the petitions according to your preference'
+                err = 'err'
                 displayPetitions = zip(petitionsIDs, petitionsURLs, petitionsTitles,petitionsValues)
                 request.session['displayPetitions'] = displayPetitions
             else:
                 request.session['petitionsValues'] = petitionsValues
-                # save ratings and commit database for user, tweets, and ratings info
-                insert_ratings(usrObj["id_str"],petitionsIDs,petitionsValues)
+                counter=0
+                #Attention check
+                '''
+                counter = 0
+                for i in petitionsValues:
+                    print str(counter)+'   '+request.session['petitionsTitles'][counter]+'   '+str(i)
+                    counter+=1
+                '''
+                counter =0
+                for i in petitionsValues:
+                    link='http://'+host+':8000/'
+                    if counter!=5 and counter!=10 and counter!=15 and i=="5":
+                        #Route to attention page
+                        print 'first'
+                        print i
+                        print counter
+                        return render_to_response('userRatings/user/concentrate.html',{'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay attention while answering and retake the questionnaire','link':link},context_instance=RequestContext(request), )
+                    if counter==5 or counter==10 or counter==15:
+                        if  i!="5":
+                            print 'second'
+                            print i
+                            print counter
+                            return render_to_response('userRatings/user/concentrate.html',{'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay attention while answering and retake the questionnaire','link':link},context_instance=RequestContext(request), )
+                    counter+=1
 
+                count = 0
+                codesSet=getCodes()
+                iden = randint(0, 100000)
+                while True:
+                    iden = randint(0, 100000)
+                    if not iden in codesSet:
+                        break
+                # save ratings and commit database for user, tweets, and ratings info
+                insert_ratings(usrObj["id_str"],petitionsIDs,petitionsValues,iden)
                 # Route to another page for thank you
-                msg = 'Thank you, '+usrObj["screen_name"]+", for helping the online petitioning community to build a better recommendation system!"
+                msg = 'Thank you, '+usrObj["screen_name"]+", for your help!"
                 return render_to_response('userRatings/user/thankYou.html',
-                                          {'msg': msg},
+                                          {'msg': msg,'iden':iden},
                                           context_instance=RequestContext(request), )
-        return render_to_response('userRatings/petition/rate.html', {'petitions': displayPetitions, 'msg': msg, 'incomplete': incomplete, 'val':petitionsValues},
+        return render_to_response('userRatings/petition/rate.html', {'petitions': displayPetitions, 'msg': msg, 'incomplete': incomplete,'err':err, 'val':petitionsValues},
                                           context_instance=RequestContext(request), )
 
     else:
-        petitions = getRandomPetitions(10)
+        petitions = getRandomPetitions(20)
 
         for i in range(len(petitions[0])):
             petitionsIDs.append(str(petitions[0][i]))
             petitionsURLs.append(petitions[1][i])
             petitionsTitles.append(petitions[2][i])
+
+        # insert attention questions after index 5,10,15
+        petitionsIDs.insert(5, '0')
+        petitionsURLs.insert(5, 'http://'+host+':8000/notApplicable')
+        petitionsTitles.insert(5, 'Donald Trump is the first president for the United States of America.')
+        petitionsIDs.insert(10, '-1')
+        petitionsURLs.insert(10, 'http://'+host+':8000/notApplicable')
+        petitionsTitles.insert(10, 'Egypt is a country located in North America and always snows.')
+        petitionsIDs.insert(15, '-2')
+        petitionsURLs.insert(15, 'http://'+host+':8000/notApplicable')
+        petitionsTitles.insert(15, 'The polar bear tends to live in tropical places, and do not live near the freezing poles.')
         request.session['petitionsIDs'] = petitionsIDs
         request.session['petitionsURLs'] = petitionsURLs
         request.session['petitionsTitles'] = petitionsTitles
+
         displayPetitions = zip(petitionsIDs,petitionsURLs,petitionsTitles)
         request.session['displayPetitions'] = displayPetitions
+        print len(request.session['displayPetitions'])
         #return render(request, 'userRatings/petition/rate.html', {'petitions': petitions})
 
         #tweets = oauth_req('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=' + usrObj["screen_name"],
                            #settings.TWITTER_TOKEN, settings.TWITTER_SECRET)
-        if checkifTweetsExist(usrObj["id_str"]):
+        if not checkifTweetsExist(usrObj["id_str"]):
             tweets=get_all_tweets(int(usrObj["id_str"]))
             # Save users tweets
             insert_tweets(tweets)
-        return render_to_response('userRatings/petition/rate.html', {'petitions': displayPetitions, 'msg': msg,'incomplete': incomplete, 'val':''}, context_instance=RequestContext(request), )
+        return render_to_response('userRatings/petition/rate.html', {'petitions': displayPetitions, 'msg': msg,'incomplete': incomplete,'err':err, 'val':''}, context_instance=RequestContext(request), )
