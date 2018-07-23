@@ -38,8 +38,8 @@ import json
 #import datetime
 from time import gmtime, strftime
 
-host = '18.220.133.108'
-dbFile = '/home/ubuntu/GTapp-virtualenv/helloworld/db.sqlite3'
+host = '127.0.0.1'
+dbFile = "/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/django/UserRatings/db.sqlite3"
 twitter_handle='change'
 
 # It's probably a good idea to put your consumer's OAuth token and
@@ -72,10 +72,9 @@ def getCodes():
     data = cursor.execute('''SELECT DISTINCT code FROM GTapp_ratings''')
     data1 = data.fetchall()
     total = 0
-    codesSet = {}
-    codesSet = set()
+    codesSet = []
     for it in data1:
-        codesSet.append(it[1])
+        codesSet.append(it[0])
         total+=1
     return codesSet
 
@@ -778,10 +777,10 @@ def checkifRatingsExist(uid):
     except Exception as e:
         print(e)
     cur = conn.cursor()
-    cur.execute("SELECT * FROM GTapp_ratings WHERE user_id=?", (uid,))
-
+    cur.execute("SELECT code FROM GTapp_ratings WHERE user_id=?", (uid,))
     rows =  cur.fetchall()
-
+    for r in rows:
+        print r
 
     print ''
     print 'number of rows'
@@ -861,11 +860,15 @@ def twitter_authenticated(request):
     #u=ast.literal_eval(user)
     #get_all_tweets(obj["id"])
     if obj["statuses_count"] < 100:
-        return render(request, 'userRatings/user/illegable.html', {'msg': 'Thank you for your interest '+obj["screen_name"]+', unfortunately in order to participate in this questionnaire you need to have an active twitter account with at least 100 tweets. You only have '+ str(obj["statuses_count"])+' tweets!'})
+        return render(request, 'userRatings/user/illegable.html', {'msg': 'Thank you for your interest '+obj["screen_name"]+', unfortunately, in order to participate in this questionnaire you need to have an active Twitter account with at least 100 tweets. You only have '+ str(obj["statuses_count"])+' tweets!'})
+    elif obj["protected"]:
+        return render(request, 'userRatings/user/illegable.html', {'msg': 'Thank you for your interest ' + obj[
+            "screen_name"] + ', unfortunately, in order to participate in this questionnaire you should have Twitter account set so that your tweets are unprotected and public.'})
     elif checkifRatingsExist(obj["id_str"]):
         return render(request, 'userRatings/user/illegable.html', {'msg': 'Thank you for your interest ' + obj[
             "screen_name"] + ', you have already submitted your questionnaire, no need to resubmit.'})
     else:
+
         request.session['usr'] = user
         # save user
         if checkifUserExist(obj["id_str"])==False:
@@ -905,8 +908,8 @@ def display_petitions(request):
         usrObj = json.loads(usr)
         if checkifRatingsExist(usrObj["id_str"]):
             return render(request, 'userRatings/user/illegable.html', {'msg': 'Thank you for your interest ' + usrObj[
-                "screen_name"] + ', you have already submitted your questionnaire, no need to resubmit'})
-        msg="Hi "+usrObj["screen_name"]+", scholars is looking for your help"
+                "screen_name"] + ', you have already submitted your questionnaire, no need to resubmit.'})
+        msg="Hi "+usrObj["screen_name"]+", please rate the following petitions according to your interest."
     else:
         msg=''
         print 'user is not retrieved at display_petitions'
@@ -931,7 +934,7 @@ def display_petitions(request):
                     incomplete = True
                     break
             if incomplete:
-                msg = 'Please finish rating all the petitions according to your preference'
+                msg = 'Please finish rating all the petitions according to your preference.'
                 err = 'err'
                 displayPetitions = zip(petitionsIDs, petitionsURLs, petitionsTitles,petitionsValues)
                 request.session['displayPetitions'] = displayPetitions
@@ -948,18 +951,26 @@ def display_petitions(request):
                 counter =0
                 for i in petitionsValues:
                     link='http://'+host+':8000/'
-                    if counter!=5 and counter!=10 and counter!=15 and i=="5":
+                    if counter!=5 and counter!=10 and i=="5":
                         #Route to attention page
                         print 'first'
                         print i
                         print counter
-                        return render_to_response('userRatings/user/concentrate.html',{'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay attention while answering and retake the questionnaire','link':link},context_instance=RequestContext(request), )
-                    if counter==5 or counter==10 or counter==15:
+                        msg = 'Thank you, ' + usrObj["screen_name"] + ", for your help!"
+                        return render_to_response('userRatings/user/thankYou.html',
+                                                  {'msg': msg, 'iden': 0},
+                                                  context_instance=RequestContext(request), )
+                        #return render_to_response('userRatings/user/concentrate.html',{'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay more attention and retake the questionnaire','link':link},context_instance=RequestContext(request), )
+                    if counter==5 or counter==10:
                         if  i!="5":
                             print 'second'
                             print i
                             print counter
-                            return render_to_response('userRatings/user/concentrate.html',{'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay attention while answering and retake the questionnaire','link':link},context_instance=RequestContext(request), )
+                            msg = 'Thank you, ' + usrObj["screen_name"] + ", for your help!"
+                            return render_to_response('userRatings/user/thankYou.html',
+                                                      {'msg': msg, 'iden': 0},
+                                                      context_instance=RequestContext(request), )
+                            #return render_to_response('userRatings/user/concentrate.html',{'msg': 'Sorry, ' + usrObj["screen_name"] + ', you need to pay more attention and retake the questionnaire','link':link},context_instance=RequestContext(request), )
                     counter+=1
 
                 count = 0
@@ -980,23 +991,23 @@ def display_petitions(request):
                                           context_instance=RequestContext(request), )
 
     else:
-        petitions = getRandomPetitions(20)
+        petitions = getRandomPetitions(12)
 
         for i in range(len(petitions[0])):
             petitionsIDs.append(str(petitions[0][i]))
             petitionsURLs.append(petitions[1][i])
             petitionsTitles.append(petitions[2][i])
 
-        # insert attention questions after index 5,10,15
+        # insert attention questions after index 5,10
         petitionsIDs.insert(5, '0')
         petitionsURLs.insert(5, 'http://'+host+':8000/notApplicable')
         petitionsTitles.insert(5, 'Donald Trump is the first president for the United States of America.')
         petitionsIDs.insert(10, '-1')
         petitionsURLs.insert(10, 'http://'+host+':8000/notApplicable')
         petitionsTitles.insert(10, 'Egypt is a country located in North America and always snows.')
-        petitionsIDs.insert(15, '-2')
-        petitionsURLs.insert(15, 'http://'+host+':8000/notApplicable')
-        petitionsTitles.insert(15, 'The polar bear tends to live in tropical places, and do not live near the freezing poles.')
+        #petitionsIDs.insert(15, '-2')
+        #petitionsURLs.insert(15, 'http://'+host+':8000/notApplicable')
+        #petitionsTitles.insert(15, 'The polar bear tends to live in tropical places, and do not live near the freezing poles.')
         request.session['petitionsIDs'] = petitionsIDs
         request.session['petitionsURLs'] = petitionsURLs
         request.session['petitionsTitles'] = petitionsTitles

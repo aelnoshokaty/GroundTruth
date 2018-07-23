@@ -14,17 +14,20 @@
         margin-top: 2em;
     }
     </style>
-    <h2>Rating Petitions</h2>
+    <h1>Rating Petitions</h1>
     {% if err == "err" %}
         <h3 style="color:red;"> {{msg}}</h3>
     {% else %}
-        <h3> {{msg}}</h3>
+            <ul>
+                <li> <p>{{msg}}</p></li>
+                <li><p>Please note, you could click on any prospect petition's title to get more insights into the cause.</p></li>
+            </ul>
     {% endif %}
     <body>
         <form method="post" name="formSurvey">
             {% csrf_token %}
             <table style="width:100%" border="1">
-                <tr><th>Petition title</th> <th>Strongly relevant</th> <th>Relevant</th> <th>Nuetral</th> <th>Irrelevant</th> <th>Strongly irrelevant</th><th>Not a petition</th></tr>
+                <tr><th>Title</th> <th>Strongly relevant</th> <th>Relevant</th> <th>Nuetral</th> <th>Irrelevant</th> <th>Strongly irrelevant</th><th>Not a petition</th></tr>
                 {% for item in petitions %}
                     <tr>
                         <td style="width:50%">
